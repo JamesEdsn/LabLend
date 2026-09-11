@@ -1,4 +1,4 @@
-📌 Deskripsi Masalah
+# 📌 Deskripsi Masalah
 Dalam pelaksanaan kegiatan praktikum maupun pengerjaan tugas akhir, mahasiswa sering kali diwajibkan untuk meminjam perangkat keras laboratorium (seperti mikrokontroler ESP32, sensor ultrasonik HC-SR04, router MikroTik, atau kabel jaringan). Namun, sistem peminjaman yang berjalan saat ini masih mengandalkan pencatatan manual di buku besar laboratorium. Hal ini menimbulkan beberapa masalah utama:
 
 Informasi Stok Tidak Real-Time: Mahasiswa sering membuang waktu datang ke laboratorium hanya untuk mendapati bahwa alat yang dibutuhkan sedang habis atau dipinjam orang lain.
