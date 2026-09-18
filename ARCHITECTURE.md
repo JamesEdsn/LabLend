@@ -24,8 +24,8 @@ lablend-app/
 User actions di Mobile App -> HTTP Request ke Express API -> Prisma eksekusi query ke MySQL -> API mengembalikan respons JSON -> Mobile App memperbarui state UI.
 
 ## Key Decisions
-**Monorepo (npm workspaces):** Dipakai agar frontend dan backend bisa berbagi tipe data (DTO dan interface) dari folder shared, sehingga tidak ada duplikasi kode.
-**React Native (Expo):** Dipilih agar bisa membangun aplikasi mobile (Android/iOS) dengan cepat tanpa perlu konfigurasi native (Android Studio/Xcode) yang berat.
-**Prisma ORM:** Digunakan karena fitur type-safety dengan TypeScript sangat kuat, mengurangi risiko bug pada database.
-**NativeWind:** Dipakai agar styling UI di React Native bisa menggunakan utility classes ala Tailwind CSS, mempercepat proses desain.
-**Skala Realistis:** Autentikasi dibuat sederhana (tanpa OAuth), dan akses hardware seperti kamera (scan barcode) diabaikan pada versi MVP ini agar proyek pasti selesai dalam 12 kali pertemuan perkuliahan.
+* **Monorepo (npm workspaces):** Dipakai agar frontend dan backend bisa berbagi tipe data (DTO dan interface) dari folder shared, sehingga tidak ada duplikasi kode.
+* **React Native (Expo):** Dipilih agar bisa membangun aplikasi mobile (Android/iOS) dengan cepat tanpa perlu konfigurasi native (Android Studio/Xcode) yang berat.
+* **Prisma ORM:** Digunakan karena fitur type-safety dengan TypeScript sangat kuat, mengurangi risiko bug pada database.
+* **NativeWind:** Dipakai agar styling UI di React Native bisa menggunakan utility classes ala Tailwind CSS, mempercepat proses desain.
+* **Skala Realistis:** Autentikasi dibuat sederhana (tanpa OAuth), dan akses hardware seperti kamera (scan barcode) diabaikan pada versi MVP ini agar proyek pasti selesai dalam 12 kali pertemuan perkuliahan.
