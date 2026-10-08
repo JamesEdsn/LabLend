@@ -4,10 +4,12 @@
 
 * **Frontend:** Flutter + Dart
 * **State Management:** Riverpod
-* **Architecture Pattern:** Feature-based structure with Repository Pattern
-* **Platform:** Android / Web / Windows
-* **Data Source:** Simulated local repository for the current MVP
 * **Testing:** Flutter Widget Test
+* * **Backend:** Node.js (Express) + TypeScript
+* **Database:** MySQL
+* **ORM:** Prisma
+* **Infrastructure:** Docker Compose (untuk database lokal)
+* **Architecture Pattern:** Monorepo (npm workspaces)
 
 ## Folder Structure
 
