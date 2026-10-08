@@ -22,7 +22,13 @@ class PeminjamanRepository {
       return [];
     }
 
-    return ['Laptop', 'Tripod', 'Kamera', 'Mikroskop', 'Flashdisk'];
+    return [
+      'Ethernet Cable',
+      'Tripod',
+      'Camera',
+      'Microcontroller',
+      'Flashdisk',
+    ];
   }
 
   Future<void> submitPeminjaman({
