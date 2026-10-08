@@ -5,7 +5,7 @@
 * **Frontend:** Flutter + Dart
 * **State Management:** Riverpod
 * **Testing:** Flutter Widget Test
-* * **Backend:** Node.js (Express) + TypeScript
+* **Backend:** Node.js (Express) + TypeScript
 * **Database:** MySQL
 * **ORM:** Prisma
 * **Infrastructure:** Docker Compose (untuk database lokal)
