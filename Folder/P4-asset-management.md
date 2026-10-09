@@ -181,14 +181,15 @@ flutter test
 
 Screenshot berikut digunakan untuk menunjukkan bahwa fitur peminjaman dapat menangani berbagai kondisi aplikasi.
 
-| No. | Kondisi              | Screenshot                                            | Penjelasan                                                                                              |
-| --- | -------------------- | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| 1   | Initial loading      | [Lihat Screenshot](screenshots/01-loading.png)        | Indikator loading ditampilkan ketika aplikasi mengambil data alat.                                      |
-| 2   | Data berhasil dimuat | [Lihat Screenshot](screenshots/02-loaded.png)         | Daftar alat dan form peminjaman ditampilkan setelah data tersedia.                                      |
-| 3   | Empty state          | [Lihat Screenshot](screenshots/03-empty.png)          | Pesan stok alat kosong ditampilkan ketika repository mengembalikan daftar kosong.                       |
-| 4   | Error + retry        | [Lihat Screenshot](screenshots/04-error-retry.png)    | Pesan error dan tombol Coba Lagi ditampilkan ketika pengambilan data gagal.                             |
-| 5   | Validasi input       | [Lihat Screenshot](screenshots/05-validation.png)     | Pesan kesalahan muncul ketika input form tidak memenuhi aturan validasi.                                |
-| 6   | Loading saat submit  | [Lihat Screenshot](screenshots/06-submit-loading.png) | Tombol submit menampilkan indikator loading dan tidak dapat ditekan ulang selama pengajuan berlangsung. |
+| No. | Kondisi              | Screenshot                                               | Penjelasan                                                                                              |
+| --- | -------------------- | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| 1   | Initial loading      | [Lihat Screenshot](../screenshots/01-loading.png)        | Indikator loading ditampilkan ketika aplikasi mengambil data alat.                                      |
+| 2   | Data berhasil dimuat | [Lihat Screenshot](../screenshots/02-loaded.png)         | Daftar alat dan form peminjaman ditampilkan setelah data tersedia.                                      |
+| 3   | Empty state          | [Lihat Screenshot](../screenshots/03-empty.png)          | Pesan stok alat kosong ditampilkan ketika repository mengembalikan daftar kosong.                       |
+| 4   | Error + retry        | [Lihat Screenshot](../screenshots/04-error-retry.png)    | Pesan error dan tombol Coba Lagi ditampilkan ketika pengambilan data gagal.                             |
+| 5   | Validasi input       | [Lihat Screenshot](../screenshots/05-validation.png)     | Pesan kesalahan muncul ketika input form tidak memenuhi aturan validasi.                                |
+| 6   | Loading saat submit  | [Lihat Screenshot](../screenshots/06-submit-loading.png) | Tombol submit menampilkan indikator loading dan tidak dapat ditekan ulang selama pengajuan berlangsung. |
+
 
 ## 5. Bagian yang Saya Review/Perbaiki Sendiri
 
