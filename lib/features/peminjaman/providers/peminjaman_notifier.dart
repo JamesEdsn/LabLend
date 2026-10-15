@@ -33,7 +33,7 @@ class PeminjamanState {
 }
 
 final peminjamanRepositoryProvider = Provider<PeminjamanRepository>((ref) {
-  return const PeminjamanRepository(); // kalo mau stok sedang kosong & test error
+  return PeminjamanRepository();
 });
 
 final peminjamanProvider =

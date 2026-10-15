@@ -10,25 +10,23 @@ void main() {
   Widget createTestApp(PeminjamanRepository repository) {
     return ProviderScope(
       overrides: [peminjamanRepositoryProvider.overrideWithValue(repository)],
-      child: const MaterialApp(home: FormPeminjamanScreen()),
+      child: MaterialApp(home: FormPeminjamanScreen()),
     );
   }
 
   testWidgets('shows loading state', (tester) async {
     await tester.pumpWidget(
-      createTestApp(
-        const PeminjamanRepository(fetchDelay: Duration(seconds: 1)),
-      ),
+      createTestApp(PeminjamanRepository(fetchDelay: Duration(seconds: 1))),
     );
 
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
 
-    await tester.pump(const Duration(seconds: 1));
+    await tester.pump(Duration(seconds: 1));
   });
 
   testWidgets('shows loaded data', (tester) async {
     await tester.pumpWidget(
-      createTestApp(const PeminjamanRepository(fetchDelay: Duration.zero)),
+      createTestApp(PeminjamanRepository(fetchDelay: Duration.zero)),
     );
 
     await tester.pumpAndSettle();
@@ -41,10 +39,7 @@ void main() {
   testWidgets('shows empty state', (tester) async {
     await tester.pumpWidget(
       createTestApp(
-        const PeminjamanRepository(
-          simulateEmpty: true,
-          fetchDelay: Duration.zero,
-        ),
+        PeminjamanRepository(simulateEmpty: true, fetchDelay: Duration.zero),
       ),
     );
 
@@ -56,10 +51,7 @@ void main() {
   testWidgets('shows error and retry button', (tester) async {
     await tester.pumpWidget(
       createTestApp(
-        const PeminjamanRepository(
-          simulateError: true,
-          fetchDelay: Duration.zero,
-        ),
+        PeminjamanRepository(simulateError: true, fetchDelay: Duration.zero),
       ),
     );
 
@@ -72,7 +64,7 @@ void main() {
 
   testWidgets('shows validation errors', (tester) async {
     await tester.pumpWidget(
-      createTestApp(const PeminjamanRepository(fetchDelay: Duration.zero)),
+      createTestApp(PeminjamanRepository(fetchDelay: Duration.zero)),
     );
 
     await tester.pumpAndSettle();
@@ -91,7 +83,7 @@ void main() {
   testWidgets('submit button shows loading state', (tester) async {
     await tester.pumpWidget(
       createTestApp(
-        const PeminjamanRepository(
+        PeminjamanRepository(
           fetchDelay: Duration.zero,
           submitDelay: Duration(seconds: 1),
         ),
@@ -127,7 +119,7 @@ void main() {
     // Loading spinner should appear.
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
 
-    await tester.pump(const Duration(seconds: 1));
-    await tester.pumpAndSettle();
+    await tester.pump(Duration(seconds: 1));
+    await tester.pump();
   });
 }
