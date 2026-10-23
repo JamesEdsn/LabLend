@@ -21,11 +21,43 @@ class Peminjaman {
   }
 
   factory Peminjaman.fromJson(Map<String, dynamic> json) {
+    final id = json['id'];
+    final alat = json['alat'];
+    final jumlah = json['jumlah'];
+    final tanggalKembali = json['tanggalKembali'];
+
+    if (id is! String || id.trim().isEmpty) {
+      throw const FormatException('ID peminjaman tidak valid');
+    }
+
+    if (alat is! String || alat.trim().isEmpty) {
+      throw const FormatException('Nama alat tidak valid');
+    }
+
+    if (jumlah is! int || jumlah <= 0) {
+      throw const FormatException('Jumlah peminjaman tidak valid');
+    }
+
+    if (tanggalKembali is! String ||
+        !RegExp(r'^\d{4}-\d{2}-\d{2}$').hasMatch(tanggalKembali)) {
+      throw const FormatException('Tanggal kembali tidak valid');
+    }
+
+    final parsedDate = DateTime.tryParse(tanggalKembali);
+
+    if (parsedDate == null ||
+        '${parsedDate.year.toString().padLeft(4, '0')}-'
+                '${parsedDate.month.toString().padLeft(2, '0')}-'
+                '${parsedDate.day.toString().padLeft(2, '0')}' !=
+            tanggalKembali) {
+      throw const FormatException('Tanggal kembali tidak valid');
+    }
+
     return Peminjaman(
-      id: json['id'] as String,
-      alat: json['alat'] as String,
-      jumlah: json['jumlah'] as int,
-      tanggalKembali: json['tanggalKembali'] as String,
+      id: id,
+      alat: alat,
+      jumlah: jumlah,
+      tanggalKembali: tanggalKembali,
     );
   }
 

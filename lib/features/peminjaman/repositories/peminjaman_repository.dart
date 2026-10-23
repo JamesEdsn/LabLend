@@ -1,5 +1,5 @@
 import '../models/peminjaman_model.dart';
-import '../services/local_storage_service.dart';
+import '../services/api_service.dart';
 
 class PeminjamanRepository {
   final bool simulateEmpty;
@@ -7,17 +7,17 @@ class PeminjamanRepository {
   final Duration fetchDelay;
   final Duration submitDelay;
 
-  final LocalStorageService _storage;
+  final ApiService _api;
 
   PeminjamanRepository({
     this.simulateEmpty = false,
     this.simulateError = false,
     this.fetchDelay = const Duration(seconds: 2),
     this.submitDelay = const Duration(seconds: 2),
-    LocalStorageService? storage,
-  }) : _storage = storage ?? LocalStorageService();
+    ApiService? api,
+  }) : _api = api ?? ApiService();
 
-  // Existing functionality: load equipment for the dropdown.
+  // Tetap menyediakan daftar alat untuk dropdown.
   Future<List<String>> fetchAlat() async {
     await Future.delayed(fetchDelay);
 
@@ -32,53 +32,32 @@ class PeminjamanRepository {
     return ['Laptop', 'Proyektor', 'Kamera', 'Mikroskop'];
   }
 
-  // READ: load saved borrowing records.
-  Future<List<Peminjaman>> fetchPeminjaman() async {
-    return _storage.getPeminjaman();
+  // READ: mengambil riwayat dari API.
+  Future<List<Peminjaman>> fetchPeminjaman() {
+    return _api.fetchPeminjaman();
   }
 
-  // CREATE: save a new borrowing record.
+  // CREATE: menyimpan peminjaman melalui API.
   Future<Peminjaman> createPeminjaman({
     required String alat,
     required int jumlah,
     required String tanggalKembali,
-  }) async {
-    final records = await _storage.getPeminjaman();
-
-    final newRecord = Peminjaman(
-      id: DateTime.now().microsecondsSinceEpoch.toString(),
+  }) {
+    return _api.createPeminjaman(
       alat: alat,
       jumlah: jumlah,
       tanggalKembali: tanggalKembali,
     );
-
-    records.add(newRecord);
-    await _storage.savePeminjaman(records);
-
-    return newRecord;
   }
 
-  // UPDATE: replace an existing record.
-  Future<void> updatePeminjaman(Peminjaman updatedRecord) async {
-    final records = await _storage.getPeminjaman();
-
-    final index = records.indexWhere((record) => record.id == updatedRecord.id);
-
-    if (index == -1) {
-      throw Exception('Data peminjaman tidak ditemukan');
-    }
-
-    records[index] = updatedRecord;
-    await _storage.savePeminjaman(records);
+  // UPDATE: memperbarui peminjaman melalui API.
+  Future<void> updatePeminjaman(Peminjaman updatedRecord) {
+    return _api.updatePeminjaman(updatedRecord);
   }
 
-  // DELETE: remove a record by ID.
-  Future<void> deletePeminjaman(String id) async {
-    final records = await _storage.getPeminjaman();
-
-    records.removeWhere((record) => record.id == id);
-
-    await _storage.savePeminjaman(records);
+  // DELETE: menghapus peminjaman melalui API.
+  Future<void> deletePeminjaman(String id) {
+    return _api.deletePeminjaman(id);
   }
 
   Future<void> submitPeminjaman({
