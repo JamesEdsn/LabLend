@@ -29,7 +29,19 @@ class PeminjamanRepository {
       return [];
     }
 
-    return ['Laptop', 'Proyektor', 'Kamera', 'Mikroskop'];
+    return [
+      'Laptop',
+      'Proyektor',
+      'Kamera',
+      'ESP32 Development Board',
+      'Raspberry Pi',
+      'Arduino Uno',
+      'Sensor Kit',
+      'Digital Multimeter',
+      'MikroTik Router',
+      'LAN Cable Tester',
+      'IoT Starter Kit',
+    ];
   }
 
   // READ: mengambil riwayat dari API.
