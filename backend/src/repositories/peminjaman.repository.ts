@@ -1,4 +1,3 @@
-
 import { prisma } from "../database.js";
 import type { PeminjamanInput } from "../models/peminjaman.model.js";
 

@@ -23,7 +23,6 @@ export function createApp(repository: PeminjamanRepositoryPort) {
 
   app.use("/api/auth", authRouter);
   app.use("/api/peminjaman", createPeminjamanRouter(repository));
-  app.use("/api/peminjaman", createPeminjamanRouter(repository));
 
   // JSON rusak adalah kesalahan input dari klien (400), bukan server error (500).
   app.use(

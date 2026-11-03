@@ -1,4 +1,3 @@
-
 import { Router } from "express";
 import type { PeminjamanInput } from "../models/peminjaman.model.js";
 import { isValidPeminjaman } from "../models/peminjaman.model.js";

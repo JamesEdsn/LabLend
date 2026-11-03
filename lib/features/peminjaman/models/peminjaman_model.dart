@@ -56,8 +56,7 @@ class Peminjaman {
       throw const FormatException('Jumlah peminjaman tidak valid');
     }
 
-    if (tanggalKembali is! String ||
-        !isValidTanggalKembali(tanggalKembali)) {
+    if (tanggalKembali is! String || !isValidTanggalKembali(tanggalKembali)) {
       throw const FormatException('Tanggal kembali tidak valid');
     }
 
