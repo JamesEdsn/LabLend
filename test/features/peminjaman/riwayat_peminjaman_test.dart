@@ -18,7 +18,12 @@ const _validRecord = <String, dynamic>{
 };
 
 Widget _testApp(http.Client client) {
-  final repository = PeminjamanRepository(api: ApiService(client: client));
+  final repository = PeminjamanRepository(
+    api: ApiService(
+      client: client,
+      tokenProvider: () async => 'test-jwt-token',
+    ),
+  );
 
   return ProviderScope(
     retry: (retryCount, error) => null,

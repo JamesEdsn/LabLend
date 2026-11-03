@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
+import '../../../core/services/secure_storage_service.dart';
 import '../models/peminjaman_model.dart';
 
 class ApiService {
@@ -9,11 +10,37 @@ class ApiService {
   static const String baseUrl = 'http://localhost:3000/api';
 
   final http.Client client;
+  final Future<String?> Function()? tokenProvider;
+  final SecureStorageService secureStorage;
 
-  ApiService({http.Client? client}) : client = client ?? http.Client();
+  ApiService({
+    http.Client? client,
+    SecureStorageService? secureStorage,
+    this.tokenProvider,
+  }) : client = client ?? http.Client(),
+       secureStorage = secureStorage ?? SecureStorageService();
+
+  // Mengambil JWT dan memasukkannya ke header Authorization.
+  Future<Map<String, String>> _authHeaders({bool jsonContent = false}) async {
+    final token = tokenProvider != null
+        ? await tokenProvider!()
+        : await secureStorage.getToken();
+
+    if (token == null || token.isEmpty) {
+      throw Exception('Token tidak ditemukan. Silakan login kembali.');
+    }
+
+    return {
+      'Authorization': 'Bearer $token',
+      if (jsonContent) 'Content-Type': 'application/json',
+    };
+  }
 
   Future<List<Peminjaman>> fetchPeminjaman() async {
-    final response = await client.get(Uri.parse('$baseUrl/peminjaman'));
+    final response = await client.get(
+      Uri.parse('$baseUrl/peminjaman'),
+      headers: await _authHeaders(),
+    );
 
     if (response.statusCode != 200) {
       throw Exception(
@@ -47,7 +74,7 @@ class ApiService {
   }) async {
     final response = await client.post(
       Uri.parse('$baseUrl/peminjaman'),
-      headers: {'Content-Type': 'application/json'},
+      headers: await _authHeaders(jsonContent: true),
       body: jsonEncode({
         'alat': alat,
         'jumlah': jumlah,
@@ -75,7 +102,7 @@ class ApiService {
   Future<void> updatePeminjaman(Peminjaman record) async {
     final response = await client.put(
       Uri.parse('$baseUrl/peminjaman/${Uri.encodeComponent(record.id)}'),
-      headers: {'Content-Type': 'application/json'},
+      headers: await _authHeaders(jsonContent: true),
       body: jsonEncode({
         'alat': record.alat,
         'jumlah': record.jumlah,
@@ -93,6 +120,7 @@ class ApiService {
   Future<void> deletePeminjaman(String id) async {
     final response = await client.delete(
       Uri.parse('$baseUrl/peminjaman/${Uri.encodeComponent(id)}'),
+      headers: await _authHeaders(),
     );
 
     if (response.statusCode != 200) {

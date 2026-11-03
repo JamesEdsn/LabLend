@@ -14,13 +14,25 @@ void main() {
     'tanggalKembali': '2026-11-15',
   };
 
+  ApiService createTestService(http.Client client) {
+    return ApiService(
+      client: client,
+      tokenProvider: () async => 'test-jwt-token',
+    );
+  }
+
   test('GET parses a successful response', () async {
-    final service = ApiService(
-      client: MockClient((request) async {
+    final service = createTestService(
+      MockClient((request) async {
         expect(request.method, 'GET');
         expect(request.url.path, '/api/peminjaman');
+        expect(request.headers['authorization'], 'Bearer test-jwt-token');
+
         return http.Response(
-          jsonEncode({'success': true, 'data': [validRecord]}),
+          jsonEncode({
+            'success': true,
+            'data': [validRecord],
+          }),
           200,
         );
       }),
@@ -35,11 +47,11 @@ void main() {
   });
 
   test('GET returns an empty list when there is no data', () async {
-    final service = ApiService(
-      client: MockClient((_) async => http.Response(
-        jsonEncode({'success': true, 'data': []}),
-        200,
-      )),
+    final service = createTestService(
+      MockClient(
+        (_) async =>
+            http.Response(jsonEncode({'success': true, 'data': []}), 200),
+      ),
     );
 
     expect(await service.fetchPeminjaman(), isEmpty);
@@ -47,8 +59,8 @@ void main() {
   });
 
   test('GET throws when the server returns an HTTP failure', () async {
-    final service = ApiService(
-      client: MockClient((_) async => http.Response('Server error', 503)),
+    final service = createTestService(
+      MockClient((_) async => http.Response('Server error', 503)),
     );
 
     await expectLater(service.fetchPeminjaman(), throwsA(isA<Exception>()));
@@ -56,8 +68,8 @@ void main() {
   });
 
   test('GET throws FormatException when JSON is malformed', () async {
-    final service = ApiService(
-      client: MockClient((_) async => http.Response('{bad json', 200)),
+    final service = createTestService(
+      MockClient((_) async => http.Response('{bad json', 200)),
     );
 
     await expectLater(
@@ -68,11 +80,18 @@ void main() {
   });
 
   test('GET rejects invalid records in a valid JSON response', () async {
-    final service = ApiService(
-      client: MockClient((_) async => http.Response(
-        jsonEncode({'success': true, 'data': [{'alat': 'Laptop'}]}),
-        200,
-      )),
+    final service = createTestService(
+      MockClient(
+        (_) async => http.Response(
+          jsonEncode({
+            'success': true,
+            'data': [
+              {'alat': 'Laptop'},
+            ],
+          }),
+          200,
+        ),
+      ),
     );
 
     await expectLater(
@@ -83,15 +102,17 @@ void main() {
   });
 
   test('POST sends the form payload and parses the created record', () async {
-    final service = ApiService(
-      client: MockClient((request) async {
+    final service = createTestService(
+      MockClient((request) async {
         expect(request.method, 'POST');
         expect(request.headers['content-type'], contains('application/json'));
+        expect(request.headers['authorization'], 'Bearer test-jwt-token');
         expect(jsonDecode(request.body), {
           'alat': 'Laptop',
           'jumlah': 2,
           'tanggalKembali': '2026-11-15',
         });
+
         return http.Response(
           jsonEncode({'success': true, 'data': validRecord}),
           201,
@@ -111,11 +132,13 @@ void main() {
   });
 
   test('POST throws when the server rejects the request', () async {
-    final service = ApiService(
-      client: MockClient((_) async => http.Response(
-        jsonEncode({'success': false, 'message': 'Data tidak valid'}),
-        400,
-      )),
+    final service = createTestService(
+      MockClient(
+        (_) async => http.Response(
+          jsonEncode({'success': false, 'message': 'Data tidak valid'}),
+          400,
+        ),
+      ),
     );
 
     await expectLater(
@@ -130,42 +153,51 @@ void main() {
   });
 
   test('PUT sends updated record and accepts a successful response', () async {
-    final service = ApiService(
-      client: MockClient((request) async {
+    final service = createTestService(
+      MockClient((request) async {
         expect(request.method, 'PUT');
         expect(request.url.path, '/api/peminjaman/test-1');
+        expect(request.headers['authorization'], 'Bearer test-jwt-token');
         expect(jsonDecode(request.body), {
           'alat': 'Laptop',
           'jumlah': 3,
           'tanggalKembali': '2026-11-15',
         });
+
         return http.Response(jsonEncode({'success': true}), 200);
       }),
     );
 
     await expectLater(
-      service.updatePeminjaman(Peminjaman.fromJson({...validRecord, 'jumlah': 3})),
+      service.updatePeminjaman(
+        Peminjaman.fromJson({...validRecord, 'jumlah': 3}),
+      ),
       completes,
     );
     service.dispose();
   });
 
-  test('DELETE sends the record ID and accepts a successful response', () async {
-    final service = ApiService(
-      client: MockClient((request) async {
-        expect(request.method, 'DELETE');
-        expect(request.url.path, '/api/peminjaman/test-1');
-        return http.Response(jsonEncode({'success': true}), 200);
-      }),
-    );
+  test(
+    'DELETE sends the record ID and accepts a successful response',
+    () async {
+      final service = createTestService(
+        MockClient((request) async {
+          expect(request.method, 'DELETE');
+          expect(request.url.path, '/api/peminjaman/test-1');
+          expect(request.headers['authorization'], 'Bearer test-jwt-token');
 
-    await expectLater(service.deletePeminjaman('test-1'), completes);
-    service.dispose();
-  });
+          return http.Response(jsonEncode({'success': true}), 200);
+        }),
+      );
+
+      await expectLater(service.deletePeminjaman('test-1'), completes);
+      service.dispose();
+    },
+  );
 
   test('PUT throws when the server returns an HTTP failure', () async {
-    final service = ApiService(
-      client: MockClient((_) async => http.Response('Not found', 404)),
+    final service = createTestService(
+      MockClient((_) async => http.Response('Not found', 404)),
     );
 
     await expectLater(
@@ -176,8 +208,8 @@ void main() {
   });
 
   test('DELETE throws when the server returns an HTTP failure', () async {
-    final service = ApiService(
-      client: MockClient((_) async => http.Response('Not found', 404)),
+    final service = createTestService(
+      MockClient((_) async => http.Response('Not found', 404)),
     );
 
     await expectLater(

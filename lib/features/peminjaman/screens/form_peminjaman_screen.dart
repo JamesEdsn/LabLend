@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../models/peminjaman_model.dart';
 import '../providers/peminjaman_notifier.dart';
 import '../providers/riwayat_peminjaman_notifier.dart';
+
+const Color _primary = Color(0xFF2563EB);
+const Color _dark = Color(0xFF172554);
+const Color _muted = Color(0xFF64748B);
+const Color _border = Color(0xFFE2E8F0);
+const Color _background = Color(0xFFF6F8FC);
 
 class FormPeminjamanScreen extends ConsumerStatefulWidget {
   const FormPeminjamanScreen({super.key});
@@ -13,9 +18,23 @@ class FormPeminjamanScreen extends ConsumerStatefulWidget {
       _FormPeminjamanScreenState();
 }
 
+bool isValidTanggalKembali(String tanggal) {
+  final regex = RegExp(r'^\d{4}-\d{2}-\d{2}$');
+
+  if (!regex.hasMatch(tanggal)) return false;
+
+  final parsedDate = DateTime.tryParse(tanggal);
+
+  if (parsedDate == null) return false;
+
+  return parsedDate.year.toString().padLeft(4, '0') ==
+          tanggal.substring(0, 4) &&
+      parsedDate.month.toString().padLeft(2, '0') == tanggal.substring(5, 7) &&
+      parsedDate.day.toString().padLeft(2, '0') == tanggal.substring(8, 10);
+}
+
 class _FormPeminjamanScreenState extends ConsumerState<FormPeminjamanScreen> {
   final _formKey = GlobalKey<FormState>();
-
   final _jumlahController = TextEditingController();
   final _tanggalController = TextEditingController();
 
@@ -32,90 +51,196 @@ class _FormPeminjamanScreenState extends ConsumerState<FormPeminjamanScreen> {
   Widget build(BuildContext context) {
     final state = ref.watch(peminjamanProvider);
 
+    Widget content;
+
+    if (state.status == PeminjamanStatus.loading) {
+      content = const Center(child: CircularProgressIndicator(color: _primary));
+    } else if (state.status == PeminjamanStatus.error) {
+      content = _buildErrorState(state);
+    } else if (state.status == PeminjamanStatus.empty) {
+      content = _buildEmptyState();
+    } else {
+      content = _buildForm(state);
+    }
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Pengajuan Peminjaman')),
-      body: _buildBody(state),
+      backgroundColor: _background,
+      body: Material(color: _background, child: content),
     );
   }
 
-  Widget _buildBody(PeminjamanState state) {
-    // 1. INITIAL LOADING
-    if (state.status == PeminjamanStatus.loading) {
-      return const Center(child: CircularProgressIndicator());
-    }
+  Widget _buildPageContainer(Widget child) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final horizontalPadding = constraints.maxWidth < 600 ? 18.0 : 36.0;
 
-    // 2. ERROR
-    if (state.status == PeminjamanStatus.error) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.error_outline, size: 60),
-            const SizedBox(height: 16),
-            Text(state.errorMessage ?? 'Terjadi kesalahan.'),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () {
-                ref.read(peminjamanProvider.notifier).fetchAlat();
-              },
-              child: const Text('Coba Lagi'),
+        return SingleChildScrollView(
+          padding: EdgeInsets.symmetric(
+            horizontal: horizontalPadding,
+            vertical: 28,
+          ),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 820),
+              child: child,
             ),
-          ],
-        ),
-      );
-    }
-
-    // 3. EMPTY
-    if (state.status == PeminjamanStatus.empty) {
-      return const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.inventory_2_outlined, size: 60),
-            SizedBox(height: 16),
-            Text('Stok Alat Sedang Kosong', style: TextStyle(fontSize: 18)),
-          ],
-        ),
-      );
-    }
-
-    // 4. LOADED
-    return _buildForm(state);
+          ),
+        );
+      },
+    );
   }
 
   Widget _buildForm(PeminjamanState state) {
-    return Padding(
-      padding: const EdgeInsets.all(16),
+    return _buildPageContainer(
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildPageHeader(),
+          const SizedBox(height: 26),
+          _buildInformationCard(),
+          const SizedBox(height: 20),
+          _buildFormCard(state),
+          const SizedBox(height: 18),
+          _buildFooterNote(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPageHeader() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(11),
+          decoration: BoxDecoration(
+            color: const Color(0xFFEFF4FF),
+            borderRadius: BorderRadius.circular(13),
+          ),
+          child: const Icon(Icons.assignment_add, color: _primary, size: 25),
+        ),
+        const SizedBox(height: 18),
+        const Text(
+          'Form Peminjaman Alat',
+          style: TextStyle(
+            fontSize: 27,
+            fontWeight: FontWeight.w800,
+            color: _dark,
+            letterSpacing: -0.8,
+          ),
+        ),
+        const SizedBox(height: 8),
+        const Text(
+          'Isi formulir berikut untuk mengajukan peminjaman '
+          'peralatan laboratorium.',
+          style: TextStyle(fontSize: 13, height: 1.6, color: _muted),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildInformationCard() {
+    return Container(
+      padding: const EdgeInsets.all(17),
+      decoration: BoxDecoration(
+        color: const Color(0xFFEFF6FF),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFDBEAFE)),
+      ),
+      child: const Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.info_outline_rounded, color: _primary, size: 21),
+          SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Informasi Peminjaman',
+                  style: TextStyle(
+                    color: _dark,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 13,
+                  ),
+                ),
+                SizedBox(height: 5),
+                Text(
+                  'Pastikan alat, jumlah, dan tanggal pengembalian '
+                  'sudah sesuai sebelum mengirim pengajuan.',
+                  style: TextStyle(
+                    color: Color(0xFF475569),
+                    fontSize: 12,
+                    height: 1.5,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFormCard(PeminjamanState state) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: _border),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF172554).withValues(alpha: 0.035),
+            blurRadius: 20,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
       child: Form(
         key: _formKey,
-        child: ListView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'Form Peminjaman Alat',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              'Detail Peminjaman',
+              style: TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.w800,
+                color: _dark,
+                letterSpacing: -0.3,
+              ),
             ),
+            const SizedBox(height: 6),
+            const Text(
+              'Lengkapi semua informasi di bawah ini.',
+              style: TextStyle(fontSize: 12, color: _muted),
+            ),
+            const SizedBox(height: 26),
 
-            const SizedBox(height: 8),
-
-            const Text('Silakan isi data peminjaman berikut.'),
-
-            const SizedBox(height: 24),
-
-            // ALAT
+            _buildFieldLabel('Pilih Alat'),
+            const SizedBox(height: 9),
             DropdownButtonFormField<String>(
               initialValue: selectedAlat,
-              decoration: const InputDecoration(
-                labelText: 'Pilih Alat',
-                border: OutlineInputBorder(),
+              isExpanded: true,
+              icon: const Icon(
+                Icons.keyboard_arrow_down_rounded,
+                color: _muted,
               ),
-              items: state.alat
-                  .map(
-                    (alat) => DropdownMenuItem<String>(
-                      value: alat,
-                      child: Text(alat),
-                    ),
-                  )
-                  .toList(),
+              decoration: _inputDecoration(
+                hint: 'Pilih peralatan yang ingin dipinjam',
+                icon: Icons.inventory_2_outlined,
+              ),
+              items: state.alat.map((alat) {
+                return DropdownMenuItem<String>(
+                  value: alat,
+                  child: Text(
+                    alat,
+                    style: const TextStyle(fontSize: 13, color: _dark),
+                  ),
+                );
+              }).toList(),
               onChanged: state.isSubmitting
                   ? null
                   : (value) {
@@ -127,22 +252,20 @@ class _FormPeminjamanScreenState extends ConsumerState<FormPeminjamanScreen> {
                 if (value == null || value.isEmpty) {
                   return 'Silakan pilih alat';
                 }
-
                 return null;
               },
             ),
 
-            const SizedBox(height: 16),
+            const SizedBox(height: 23),
 
-            // JUMLAH
             TextFormField(
               controller: _jumlahController,
               enabled: !state.isSubmitting,
               keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'Jumlah',
-                border: OutlineInputBorder(),
-              ),
+              decoration: _inputDecoration(
+                hint: 'Masukkan jumlah alat',
+                icon: Icons.numbers_rounded,
+              ).copyWith(labelText: 'Jumlah'),
               validator: (value) {
                 if (value == null || value.isEmpty) {
                   return 'Jumlah tidak boleh kosong';
@@ -158,51 +281,227 @@ class _FormPeminjamanScreenState extends ConsumerState<FormPeminjamanScreen> {
               },
             ),
 
-            const SizedBox(height: 16),
+            const SizedBox(height: 23),
 
-            // TANGGAL KEMBALI
             TextFormField(
               controller: _tanggalController,
               enabled: !state.isSubmitting,
-              decoration: const InputDecoration(
-                labelText: 'Tanggal Kembali (YYYY-MM-DD)',
-                hintText: 'Contoh: 2026-11-15',
-                border: OutlineInputBorder(),
-              ),
+              decoration: _inputDecoration(
+                hint: 'Contoh: 2026-11-15',
+                icon: Icons.calendar_month_outlined,
+              ).copyWith(labelText: 'Tanggal Kembali (YYYY-MM-DD)'),
               validator: (value) {
                 final tanggal = value?.trim() ?? '';
+
                 if (tanggal.isEmpty) {
                   return 'Tanggal kembali tidak boleh kosong';
                 }
+
                 if (!isValidTanggalKembali(tanggal)) {
                   return 'Gunakan format YYYY-MM-DD (contoh: 2026-11-15)';
                 }
+
                 return null;
               },
             ),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: 30),
 
-            // SUBMIT
             SizedBox(
-              height: 50,
+              width: double.infinity,
+              height: 51,
               child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _primary,
+                  foregroundColor: Colors.white,
+                  disabledBackgroundColor: const Color(0xFF93B4F5),
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(11),
+                  ),
+                ),
                 onPressed: state.isSubmitting ? null : _submitPeminjaman,
                 child: state.isSubmitting
                     ? const SizedBox(
-                        height: 22,
-                        width: 22,
-                        child: CircularProgressIndicator(strokeWidth: 2),
+                        width: 21,
+                        height: 21,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2.3,
+                        ),
                       )
-                    : const Text(
-                        'Submit Peminjaman',
-                        style: TextStyle(fontSize: 16),
+                    : const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.send_rounded, size: 17),
+                          SizedBox(width: 9),
+                          Text(
+                            'Submit Peminjaman',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.2,
+                            ),
+                          ),
+                        ],
                       ),
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildFieldLabel(String label) {
+    return Text(
+      label,
+      style: const TextStyle(
+        fontSize: 12,
+        fontWeight: FontWeight.w700,
+        color: _dark,
+      ),
+    );
+  }
+
+  InputDecoration _inputDecoration({
+    required String hint,
+    required IconData icon,
+  }) {
+    return InputDecoration(
+      hintText: hint,
+      hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 12),
+      prefixIcon: Icon(icon, color: _muted, size: 19),
+      filled: true,
+      fillColor: const Color(0xFFFAFBFD),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 16),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: const BorderSide(color: _border),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: const BorderSide(color: _border),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: const BorderSide(color: _primary, width: 1.5),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: const BorderSide(color: Colors.redAccent),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: const BorderSide(color: Colors.redAccent),
+      ),
+    );
+  }
+
+  Widget _buildFooterNote() {
+    return const Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(Icons.verified_user_outlined, color: _muted, size: 15),
+        SizedBox(width: 7),
+        Flexible(
+          child: Text(
+            'Pastikan data peminjaman yang kamu masukkan sudah benar.',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 11, color: _muted),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildErrorState(PeminjamanState state) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildStateIcon(
+              Icons.cloud_off_outlined,
+              const Color(0xFFFEF2F2),
+              Colors.redAccent,
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              'Gagal Memuat Peralatan',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+                color: _dark,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              state.errorMessage ?? 'Terjadi kesalahan.',
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: _muted, fontSize: 13),
+            ),
+            const SizedBox(height: 22),
+            ElevatedButton.icon(
+              onPressed: () {
+                ref.read(peminjamanProvider.notifier).fetchAlat();
+              },
+              icon: const Icon(Icons.refresh_rounded),
+              label: const Text('Coba Lagi'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _primary,
+                foregroundColor: Colors.white,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildStateIcon(
+              Icons.inventory_2_outlined,
+              const Color(0xFFEFF4FF),
+              _primary,
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              'Stok Alat Sedang Kosong',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+                color: _dark,
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Belum ada peralatan yang tersedia untuk dipinjam.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: _muted, fontSize: 13),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStateIcon(IconData icon, Color background, Color foreground) {
+    return Container(
+      width: 72,
+      height: 72,
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: BorderRadius.circular(22),
+      ),
+      child: Icon(icon, size: 34, color: foreground),
     );
   }
 
@@ -219,12 +518,15 @@ class _FormPeminjamanScreenState extends ConsumerState<FormPeminjamanScreen> {
       tanggalKembali: _tanggalController.text.trim(),
     );
 
-    if (!mounted) {
-      return;
-    }
+    if (!mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: success
+            ? const Color(0xFF15803D)
+            : const Color(0xFFDC2626),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         content: Text(
           success
               ? 'Peminjaman berhasil diajukan!'
@@ -234,8 +536,6 @@ class _FormPeminjamanScreenState extends ConsumerState<FormPeminjamanScreen> {
     );
 
     if (success) {
-      // Riwayat dapat sudah dimuat sebelum record baru dibuat (IndexedStack).
-      // Invalidate agar daftar membaca ulang data terbaru dari API.
       ref.invalidate(riwayatPeminjamanProvider);
 
       _jumlahController.clear();
