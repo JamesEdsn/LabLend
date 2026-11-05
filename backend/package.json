@@ -9,7 +9,7 @@
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
     "start": "node dist/src/server.js",
-    "test": "tsx --test tests/peminjaman.model.test.ts tests/peminjaman.api.test.ts"
+    "test": "tsx --test tests/peminjaman.model.test.ts tests/peminjaman.api.test.ts tests/alat.model.test.ts tests/alat.api.test.ts"
   },
   "keywords": [],
   "author": "",

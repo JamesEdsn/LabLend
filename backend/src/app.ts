@@ -1,14 +1,23 @@
-import authRouter from "./routes/auth.routes.js";
 import express from "express";
 import cors from "cors";
+
+import authRouter from "./routes/auth.routes.js";
 
 import {
   createPeminjamanRouter,
   type PeminjamanRepositoryPort,
 } from "./routes/peminjaman.routes.js";
 
+import {
+  createAlatRouter,
+  type AlatRepositoryPort,
+} from "./routes/alat.routes.js";
+
 /** Membuat aplikasi Express dengan repository yang bisa diganti saat testing. */
-export function createApp(repository: PeminjamanRepositoryPort) {
+export function createApp(
+  repository: PeminjamanRepositoryPort,
+  alatRepository?: AlatRepositoryPort,
+) {
   const app = express();
 
   app.use(cors());
@@ -21,8 +30,17 @@ export function createApp(repository: PeminjamanRepositoryPort) {
     });
   });
 
+  // Authentication
   app.use("/api/auth", authRouter);
+
+  // Peminjaman API
   app.use("/api/peminjaman", createPeminjamanRouter(repository));
+
+  // Inventory API
+  // Dipasang jika repository inventaris tersedia.
+  if (alatRepository) {
+    app.use("/api/alat", createAlatRouter(alatRepository));
+  }
 
   // JSON rusak adalah kesalahan input dari klien (400), bukan server error (500).
   app.use(

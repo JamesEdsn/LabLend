@@ -123,17 +123,18 @@ class _FormPeminjamanScreenState extends ConsumerState<FormPeminjamanScreen> {
         const Text(
           'Form Peminjaman Alat',
           style: TextStyle(
-            fontSize: 27,
-            fontWeight: FontWeight.w800,
+            fontSize: 28,
+            fontWeight: FontWeight.w700,
             color: _dark,
-            letterSpacing: -0.8,
+            letterSpacing: -0.5,
+            height: 1.2,
           ),
         ),
         const SizedBox(height: 8),
         const Text(
           'Isi formulir berikut untuk mengajukan peminjaman '
           'peralatan laboratorium.',
-          style: TextStyle(fontSize: 13, height: 1.6, color: _muted),
+          style: TextStyle(fontSize: 14, height: 1.6, color: _muted),
         ),
       ],
     );
@@ -161,7 +162,7 @@ class _FormPeminjamanScreenState extends ConsumerState<FormPeminjamanScreen> {
                   style: TextStyle(
                     color: _dark,
                     fontWeight: FontWeight.w700,
-                    fontSize: 13,
+                    fontSize: 14,
                   ),
                 ),
                 SizedBox(height: 5),
@@ -170,7 +171,7 @@ class _FormPeminjamanScreenState extends ConsumerState<FormPeminjamanScreen> {
                   'sudah sesuai sebelum mengirim pengajuan.',
                   style: TextStyle(
                     color: Color(0xFF475569),
-                    fontSize: 12,
+                    fontSize: 13,
                     height: 1.5,
                   ),
                 ),
@@ -206,8 +207,8 @@ class _FormPeminjamanScreenState extends ConsumerState<FormPeminjamanScreen> {
             const Text(
               'Detail Peminjaman',
               style: TextStyle(
-                fontSize: 17,
-                fontWeight: FontWeight.w800,
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
                 color: _dark,
                 letterSpacing: -0.3,
               ),
@@ -215,15 +216,20 @@ class _FormPeminjamanScreenState extends ConsumerState<FormPeminjamanScreen> {
             const SizedBox(height: 6),
             const Text(
               'Lengkapi semua informasi di bawah ini.',
-              style: TextStyle(fontSize: 12, color: _muted),
+              style: TextStyle(fontSize: 13, color: _muted),
             ),
             const SizedBox(height: 26),
 
             _buildFieldLabel('Pilih Alat'),
             const SizedBox(height: 9),
+
             DropdownButtonFormField<String>(
               initialValue: selectedAlat,
               isExpanded: true,
+              menuMaxHeight: 280,
+              borderRadius: BorderRadius.circular(12),
+              dropdownColor: Colors.white,
+              elevation: 6,
               icon: const Icon(
                 Icons.keyboard_arrow_down_rounded,
                 color: _muted,
@@ -237,7 +243,11 @@ class _FormPeminjamanScreenState extends ConsumerState<FormPeminjamanScreen> {
                   value: alat,
                   child: Text(
                     alat,
-                    style: const TextStyle(fontSize: 13, color: _dark),
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: _dark,
+                    ),
                   ),
                 );
               }).toList(),
@@ -338,9 +348,8 @@ class _FormPeminjamanScreenState extends ConsumerState<FormPeminjamanScreen> {
                           Text(
                             'Submit Peminjaman',
                             style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 0.2,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ],
@@ -357,8 +366,8 @@ class _FormPeminjamanScreenState extends ConsumerState<FormPeminjamanScreen> {
     return Text(
       label,
       style: const TextStyle(
-        fontSize: 12,
-        fontWeight: FontWeight.w700,
+        fontSize: 14,
+        fontWeight: FontWeight.w600,
         color: _dark,
       ),
     );
@@ -370,11 +379,15 @@ class _FormPeminjamanScreenState extends ConsumerState<FormPeminjamanScreen> {
   }) {
     return InputDecoration(
       hintText: hint,
-      hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 12),
+      hintStyle: const TextStyle(
+        color: _muted,
+        fontSize: 13,
+        fontWeight: FontWeight.w400,
+      ),
       prefixIcon: Icon(icon, color: _muted, size: 19),
       filled: true,
       fillColor: const Color(0xFFFAFBFD),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 16),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
         borderSide: const BorderSide(color: _border),
@@ -408,7 +421,7 @@ class _FormPeminjamanScreenState extends ConsumerState<FormPeminjamanScreen> {
           child: Text(
             'Pastikan data peminjaman yang kamu masukkan sudah benar.',
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 11, color: _muted),
+            style: TextStyle(fontSize: 12, color: _muted),
           ),
         ),
       ],
@@ -432,7 +445,7 @@ class _FormPeminjamanScreenState extends ConsumerState<FormPeminjamanScreen> {
               'Gagal Memuat Peralatan',
               style: TextStyle(
                 fontSize: 18,
-                fontWeight: FontWeight.w800,
+                fontWeight: FontWeight.w700,
                 color: _dark,
               ),
             ),
@@ -440,7 +453,7 @@ class _FormPeminjamanScreenState extends ConsumerState<FormPeminjamanScreen> {
             Text(
               state.errorMessage ?? 'Terjadi kesalahan.',
               textAlign: TextAlign.center,
-              style: const TextStyle(color: _muted, fontSize: 13),
+              style: const TextStyle(color: _muted, fontSize: 14),
             ),
             const SizedBox(height: 22),
             ElevatedButton.icon(
@@ -477,7 +490,7 @@ class _FormPeminjamanScreenState extends ConsumerState<FormPeminjamanScreen> {
               'Stok Alat Sedang Kosong',
               style: TextStyle(
                 fontSize: 18,
-                fontWeight: FontWeight.w800,
+                fontWeight: FontWeight.w700,
                 color: _dark,
               ),
             ),
@@ -485,7 +498,7 @@ class _FormPeminjamanScreenState extends ConsumerState<FormPeminjamanScreen> {
             const Text(
               'Belum ada peralatan yang tersedia untuk dipinjam.',
               textAlign: TextAlign.center,
-              style: TextStyle(color: _muted, fontSize: 13),
+              style: TextStyle(color: _muted, fontSize: 14),
             ),
           ],
         ),
