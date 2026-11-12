@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../providers/peminjaman_notifier.dart';
 import '../providers/riwayat_peminjaman_notifier.dart';
+import '../validation/peminjaman_validation.dart';
 
 const Color _primary = Color(0xFF2563EB);
 const Color _dark = Color(0xFF172554);
@@ -16,21 +17,6 @@ class FormPeminjamanScreen extends ConsumerStatefulWidget {
   @override
   ConsumerState<FormPeminjamanScreen> createState() =>
       _FormPeminjamanScreenState();
-}
-
-bool isValidTanggalKembali(String tanggal) {
-  final regex = RegExp(r'^\d{4}-\d{2}-\d{2}$');
-
-  if (!regex.hasMatch(tanggal)) return false;
-
-  final parsedDate = DateTime.tryParse(tanggal);
-
-  if (parsedDate == null) return false;
-
-  return parsedDate.year.toString().padLeft(4, '0') ==
-          tanggal.substring(0, 4) &&
-      parsedDate.month.toString().padLeft(2, '0') == tanggal.substring(5, 7) &&
-      parsedDate.day.toString().padLeft(2, '0') == tanggal.substring(8, 10);
 }
 
 class _FormPeminjamanScreenState extends ConsumerState<FormPeminjamanScreen> {
@@ -258,12 +244,7 @@ class _FormPeminjamanScreenState extends ConsumerState<FormPeminjamanScreen> {
                         selectedAlat = value;
                       });
                     },
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Silakan pilih alat';
-                }
-                return null;
-              },
+              validator: validatePilihanAlat,
             ),
 
             const SizedBox(height: 23),
@@ -276,19 +257,7 @@ class _FormPeminjamanScreenState extends ConsumerState<FormPeminjamanScreen> {
                 hint: 'Masukkan jumlah alat',
                 icon: Icons.numbers_rounded,
               ).copyWith(labelText: 'Jumlah'),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Jumlah tidak boleh kosong';
-                }
-
-                final jumlah = int.tryParse(value);
-
-                if (jumlah == null || jumlah <= 0) {
-                  return 'Jumlah harus lebih dari 0';
-                }
-
-                return null;
-              },
+              validator: validateJumlah,
             ),
 
             const SizedBox(height: 23),
@@ -300,19 +269,7 @@ class _FormPeminjamanScreenState extends ConsumerState<FormPeminjamanScreen> {
                 hint: 'Contoh: 2026-11-15',
                 icon: Icons.calendar_month_outlined,
               ).copyWith(labelText: 'Tanggal Kembali (YYYY-MM-DD)'),
-              validator: (value) {
-                final tanggal = value?.trim() ?? '';
-
-                if (tanggal.isEmpty) {
-                  return 'Tanggal kembali tidak boleh kosong';
-                }
-
-                if (!isValidTanggalKembali(tanggal)) {
-                  return 'Gunakan format YYYY-MM-DD (contoh: 2026-11-15)';
-                }
-
-                return null;
-              },
+              validator: validateTanggalKembali,
             ),
 
             const SizedBox(height: 30),
@@ -527,7 +484,7 @@ class _FormPeminjamanScreenState extends ConsumerState<FormPeminjamanScreen> {
 
     final success = await notifier.submitPeminjaman(
       alat: selectedAlat!,
-      jumlah: int.parse(_jumlahController.text),
+      jumlah: int.parse(_jumlahController.text.trim()),
       tanggalKembali: _tanggalController.text.trim(),
     );
 

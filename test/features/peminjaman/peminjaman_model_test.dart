@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lablend/features/peminjaman/models/peminjaman_model.dart';
+import 'package:lablend/features/peminjaman/validation/peminjaman_validation.dart';
 
 void main() {
   final validJson = <String, dynamic>{
@@ -62,7 +63,8 @@ void main() {
 
     test('rejects invalid return dates', () {
       expect(
-        () => Peminjaman.fromJson({...validJson, 'tanggalKembali': '2026-02-30'}),
+        () =>
+            Peminjaman.fromJson({...validJson, 'tanggalKembali': '2026-02-30'}),
         throwsFormatException,
       );
     });

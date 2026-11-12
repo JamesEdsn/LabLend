@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../validation/peminjaman_validation.dart';
 import '../models/peminjaman_model.dart';
 
 const Color _primary = Color(0xFF356AE6);
@@ -29,11 +30,9 @@ class _EditPeminjamanDialogState extends State<EditPeminjamanDialog> {
     super.initState();
 
     _alatController = TextEditingController(text: widget.record.alat);
-
     _jumlahController = TextEditingController(
       text: widget.record.jumlah.toString(),
     );
-
     _tanggalController = TextEditingController(
       text: widget.record.tanggalKembali,
     );
@@ -58,9 +57,7 @@ class _EditPeminjamanDialogState extends State<EditPeminjamanDialog> {
         borderRadius: BorderRadius.circular(20),
         side: const BorderSide(color: _border),
       ),
-
       titlePadding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
-
       title: Row(
         children: [
           Container(
@@ -86,9 +83,7 @@ class _EditPeminjamanDialogState extends State<EditPeminjamanDialog> {
           ),
         ],
       ),
-
       contentPadding: const EdgeInsets.fromLTRB(24, 12, 24, 8),
-
       content: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 420),
         child: SingleChildScrollView(
@@ -102,13 +97,10 @@ class _EditPeminjamanDialogState extends State<EditPeminjamanDialog> {
                   'Perbarui informasi peminjaman alat di bawah ini.',
                   style: TextStyle(fontSize: 13, height: 1.5, color: _muted),
                 ),
-
                 const SizedBox(height: 22),
 
                 _buildFieldLabel('Nama Alat'),
-
                 const SizedBox(height: 8),
-
                 TextFormField(
                   controller: _alatController,
                   textCapitalization: TextCapitalization.words,
@@ -122,20 +114,13 @@ class _EditPeminjamanDialogState extends State<EditPeminjamanDialog> {
                     hint: 'Masukkan nama alat',
                     icon: Icons.inventory_2_outlined,
                   ),
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'Nama alat wajib diisi';
-                    }
-                    return null;
-                  },
+                  validator: validateNamaAlat,
                 ),
 
                 const SizedBox(height: 18),
 
                 _buildFieldLabel('Jumlah'),
-
                 const SizedBox(height: 8),
-
                 TextFormField(
                   controller: _jumlahController,
                   keyboardType: TextInputType.number,
@@ -149,23 +134,13 @@ class _EditPeminjamanDialogState extends State<EditPeminjamanDialog> {
                     hint: 'Masukkan jumlah alat',
                     icon: Icons.numbers_rounded,
                   ),
-                  validator: (value) {
-                    final jumlah = int.tryParse(value ?? '');
-
-                    if (jumlah == null || jumlah <= 0) {
-                      return 'Jumlah harus lebih dari 0';
-                    }
-
-                    return null;
-                  },
+                  validator: validateJumlah,
                 ),
 
                 const SizedBox(height: 18),
 
                 _buildFieldLabel('Tanggal Kembali'),
-
                 const SizedBox(height: 8),
-
                 TextFormField(
                   controller: _tanggalController,
                   keyboardType: TextInputType.datetime,
@@ -179,28 +154,14 @@ class _EditPeminjamanDialogState extends State<EditPeminjamanDialog> {
                     hint: 'YYYY-MM-DD',
                     icon: Icons.calendar_month_outlined,
                   ),
-                  validator: (value) {
-                    final tanggal = value?.trim() ?? '';
-
-                    if (tanggal.isEmpty) {
-                      return 'Tanggal kembali wajib diisi';
-                    }
-
-                    if (!isValidTanggalKembali(tanggal)) {
-                      return 'Gunakan format YYYY-MM-DD';
-                    }
-
-                    return null;
-                  },
+                  validator: validateTanggalKembali,
                 ),
               ],
             ),
           ),
         ),
       ),
-
       actionsPadding: const EdgeInsets.fromLTRB(24, 12, 24, 22),
-
       actions: [
         OutlinedButton(
           onPressed: () => Navigator.pop(context),
@@ -217,7 +178,6 @@ class _EditPeminjamanDialogState extends State<EditPeminjamanDialog> {
             style: TextStyle(fontWeight: FontWeight.w600),
           ),
         ),
-
         ElevatedButton.icon(
           onPressed: _save,
           icon: const Icon(Icons.check_rounded, size: 18),
@@ -286,7 +246,7 @@ class _EditPeminjamanDialogState extends State<EditPeminjamanDialog> {
 
     final updatedRecord = widget.record.copyWith(
       alat: _alatController.text.trim(),
-      jumlah: int.parse(_jumlahController.text),
+      jumlah: int.parse(_jumlahController.text.trim()),
       tanggalKembali: _tanggalController.text.trim(),
     );
 

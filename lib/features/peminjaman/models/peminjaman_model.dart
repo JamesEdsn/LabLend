@@ -1,20 +1,4 @@
-/// Memvalidasi tanggal kalender dalam format API YYYY-MM-DD.
-bool isValidTanggalKembali(String value) {
-  if (!RegExp(r'^\d{4}-\d{2}-\d{2}$').hasMatch(value)) {
-    return false;
-  }
-
-  final parsedDate = DateTime.tryParse(value);
-  if (parsedDate == null) {
-    return false;
-  }
-
-  final normalized =
-      '${parsedDate.year.toString().padLeft(4, '0')}-'
-      '${parsedDate.month.toString().padLeft(2, '0')}-'
-      '${parsedDate.day.toString().padLeft(2, '0')}';
-  return normalized == value;
-}
+import '../validation/peminjaman_validation.dart';
 
 class Peminjaman {
   final String id;
