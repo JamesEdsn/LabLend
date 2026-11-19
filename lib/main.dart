@@ -1,9 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'core/services/app_logger.dart';
 import 'features/auth/screens/auth_gate.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  AppLogger.info('LabLend application is starting');
+
+  FlutterError.onError = (FlutterErrorDetails details) {
+    FlutterError.presentError(details);
+
+    AppLogger.error(
+      'Flutter framework error',
+      error: details.exception,
+      stackTrace: details.stack,
+    );
+  };
+
   runApp(const ProviderScope(child: LabLendApp()));
 }
 
