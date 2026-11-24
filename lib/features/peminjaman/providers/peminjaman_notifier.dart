@@ -1,12 +1,13 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../models/alat_model.dart';
 import '../repositories/peminjaman_repository.dart';
 
 enum PeminjamanStatus { loading, loaded, empty, error }
 
 class PeminjamanState {
   final PeminjamanStatus status;
-  final List<String> alat;
+  final List<Alat> alat;
   final String? errorMessage;
   final bool isSubmitting;
 
@@ -19,14 +20,15 @@ class PeminjamanState {
 
   PeminjamanState copyWith({
     PeminjamanStatus? status,
-    List<String>? alat,
+    List<Alat>? alat,
     String? errorMessage,
     bool? isSubmitting,
+    bool clearError = false,
   }) {
     return PeminjamanState(
       status: status ?? this.status,
       alat: alat ?? this.alat,
-      errorMessage: errorMessage ?? this.errorMessage,
+      errorMessage: clearError ? null : errorMessage ?? this.errorMessage,
       isSubmitting: isSubmitting ?? this.isSubmitting,
     );
   }
@@ -50,12 +52,12 @@ class PeminjamanNotifier extends Notifier<PeminjamanState> {
   PeminjamanState build() {
     repository = ref.read(peminjamanRepositoryProvider);
 
-    // Start loading the equipment data.
     Future.microtask(fetchAlat);
 
     return const PeminjamanState(status: PeminjamanStatus.loading);
   }
 
+  // Mengambil inventaris dari API.
   Future<void> fetchAlat() async {
     state = const PeminjamanState(status: PeminjamanStatus.loading);
 
@@ -68,24 +70,24 @@ class PeminjamanNotifier extends Notifier<PeminjamanState> {
         state = PeminjamanState(status: PeminjamanStatus.loaded, alat: data);
       }
     } catch (e) {
-      state = const PeminjamanState(
+      state = PeminjamanState(
         status: PeminjamanStatus.error,
-        errorMessage: 'Gagal mengambil data alat.',
+        errorMessage: e.toString().replaceFirst('Exception: ', ''),
       );
     }
   }
 
+  // Mengajukan peminjaman dan meneruskan pesan error backend.
   Future<bool> submitPeminjaman({
     required String alat,
     required int jumlah,
     required String tanggalKembali,
   }) async {
-    // Prevent double submit.
     if (state.isSubmitting) {
       return false;
     }
 
-    state = state.copyWith(isSubmitting: true);
+    state = state.copyWith(isSubmitting: true, clearError: true);
 
     try {
       await repository.submitPeminjaman(
@@ -94,8 +96,17 @@ class PeminjamanNotifier extends Notifier<PeminjamanState> {
         tanggalKembali: tanggalKembali,
       );
 
+      state = state.copyWith(clearError: true);
+
+      // Refresh stok setelah peminjaman berhasil.
+      await fetchAlat();
+
       return true;
     } catch (e) {
+      state = state.copyWith(
+        errorMessage: e.toString().replaceFirst('Exception: ', ''),
+      );
+
       return false;
     } finally {
       state = state.copyWith(isSubmitting: false);

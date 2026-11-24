@@ -2,6 +2,10 @@ import { Router } from "express";
 import type { PeminjamanInput } from "../models/peminjaman.model.js";
 import { isValidPeminjaman } from "../models/peminjaman.model.js";
 import { requireAuth } from "../middleware/auth.middleware.js";
+import {
+  InsufficientStockError,
+  InventoryNotFoundError,
+} from "../models/stock-error.model.js";
 
 export interface PeminjamanRecord extends PeminjamanInput {
   id: string;
@@ -79,6 +83,25 @@ export function createPeminjamanRouter(
         data,
       });
     } catch (error) {
+
+     if (error instanceof InsufficientStockError) {
+    res.status(409).json({
+      success: false,
+      message: error.message,
+      available: error.available,
+      requested: error.requested,
+    });
+    return;
+  }
+
+  if (error instanceof InventoryNotFoundError) {
+    res.status(404).json({
+      success: false,
+      message: error.message,
+    });
+    return;
+  }
+
       next(error);
     }
   });
@@ -115,6 +138,25 @@ export function createPeminjamanRouter(
         data,
       });
     } catch (error) {
+
+      if (error instanceof InsufficientStockError) {
+    res.status(409).json({
+      success: false,
+      message: error.message,
+      available: error.available,
+      requested: error.requested,
+    });
+    return;
+  }
+
+  if (error instanceof InventoryNotFoundError) {
+    res.status(404).json({
+      success: false,
+      message: error.message,
+    });
+    return;
+  }
+
       next(error);
     }
   });

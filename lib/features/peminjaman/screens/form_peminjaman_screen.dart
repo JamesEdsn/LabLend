@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../models/alat_model.dart';
 import '../providers/peminjaman_notifier.dart';
 import '../providers/riwayat_peminjaman_notifier.dart';
 import '../validation/peminjaman_validation.dart';
@@ -24,7 +25,7 @@ class _FormPeminjamanScreenState extends ConsumerState<FormPeminjamanScreen> {
   final _jumlahController = TextEditingController();
   final _tanggalController = TextEditingController();
 
-  String? selectedAlat;
+  Alat? selectedAlat;
 
   @override
   void dispose() {
@@ -209,7 +210,7 @@ class _FormPeminjamanScreenState extends ConsumerState<FormPeminjamanScreen> {
             _buildFieldLabel('Pilih Alat'),
             const SizedBox(height: 9),
 
-            DropdownButtonFormField<String>(
+            DropdownButtonFormField<Alat>(
               initialValue: selectedAlat,
               isExpanded: true,
               menuMaxHeight: 280,
@@ -225,14 +226,15 @@ class _FormPeminjamanScreenState extends ConsumerState<FormPeminjamanScreen> {
                 icon: Icons.inventory_2_outlined,
               ),
               items: state.alat.map((alat) {
-                return DropdownMenuItem<String>(
+                return DropdownMenuItem<Alat>(
                   value: alat,
+                  enabled: alat.stokTersedia > 0,
                   child: Text(
-                    alat,
-                    style: const TextStyle(
+                    '${alat.nama} (${alat.stokTersedia} tersedia)',
+                    style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
-                      color: _dark,
+                      color: alat.stokTersedia > 0 ? _dark : Colors.grey,
                     ),
                   ),
                 );
@@ -242,10 +244,17 @@ class _FormPeminjamanScreenState extends ConsumerState<FormPeminjamanScreen> {
                   : (value) {
                       setState(() {
                         selectedAlat = value;
+                        _jumlahController.clear();
                       });
                     },
-              validator: validatePilihanAlat,
+              validator: (_) =>
+                  selectedAlat == null ? 'Pilih alat terlebih dahulu' : null,
             ),
+
+            if (selectedAlat != null) ...[
+              const SizedBox(height: 12),
+              _buildStockInformation(selectedAlat!),
+            ],
 
             const SizedBox(height: 23),
 
@@ -257,7 +266,19 @@ class _FormPeminjamanScreenState extends ConsumerState<FormPeminjamanScreen> {
                 hint: 'Masukkan jumlah alat',
                 icon: Icons.numbers_rounded,
               ).copyWith(labelText: 'Jumlah'),
-              validator: validateJumlah,
+              validator: (value) {
+                final basicError = validateJumlah(value);
+                if (basicError != null) return basicError;
+
+                final jumlah = int.tryParse(value!.trim());
+                if (selectedAlat != null &&
+                    jumlah != null &&
+                    jumlah > selectedAlat!.stokTersedia) {
+                  return 'Stok hanya tersedia ${selectedAlat!.stokTersedia}';
+                }
+
+                return null;
+              },
             ),
 
             const SizedBox(height: 23),
@@ -271,6 +292,26 @@ class _FormPeminjamanScreenState extends ConsumerState<FormPeminjamanScreen> {
               ).copyWith(labelText: 'Tanggal Kembali (YYYY-MM-DD)'),
               validator: validateTanggalKembali,
             ),
+
+            if (state.errorMessage != null) ...[
+              const SizedBox(height: 16),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFEF2F2),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: const Color(0xFFFECACA)),
+                ),
+                child: Text(
+                  state.errorMessage!,
+                  style: const TextStyle(
+                    color: Color(0xFFB91C1C),
+                    fontSize: 13,
+                  ),
+                ),
+              ),
+            ],
 
             const SizedBox(height: 30),
 
@@ -315,6 +356,50 @@ class _FormPeminjamanScreenState extends ConsumerState<FormPeminjamanScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildStockInformation(Alat alat) {
+    final available = alat.stokTersedia;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: available > 0
+            ? const Color(0xFFF0FDF4)
+            : const Color(0xFFFEF2F2),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: available > 0
+              ? const Color(0xFFBBF7D0)
+              : const Color(0xFFFECACA),
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            available > 0
+                ? Icons.inventory_2_outlined
+                : Icons.warning_amber_rounded,
+            size: 19,
+            color: available > 0 ? const Color(0xFF15803D) : Colors.red,
+          ),
+          const SizedBox(width: 9),
+          Expanded(
+            child: Text(
+              available > 0
+                  ? 'Stok tersedia: $available dari ${alat.stokTotal} unit'
+                  : 'Stok alat ini sedang habis',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: available > 0 ? const Color(0xFF166534) : Colors.red,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -480,15 +565,20 @@ class _FormPeminjamanScreenState extends ConsumerState<FormPeminjamanScreen> {
       return;
     }
 
+    final alat = selectedAlat;
+    if (alat == null) return;
+
     final notifier = ref.read(peminjamanProvider.notifier);
 
     final success = await notifier.submitPeminjaman(
-      alat: selectedAlat!,
+      alat: alat.nama,
       jumlah: int.parse(_jumlahController.text.trim()),
       tanggalKembali: _tanggalController.text.trim(),
     );
 
     if (!mounted) return;
+
+    final currentState = ref.read(peminjamanProvider);
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -500,7 +590,7 @@ class _FormPeminjamanScreenState extends ConsumerState<FormPeminjamanScreen> {
         content: Text(
           success
               ? 'Peminjaman berhasil diajukan!'
-              : 'Peminjaman gagal diajukan.',
+              : currentState.errorMessage ?? 'Peminjaman gagal diajukan.',
         ),
       ),
     );

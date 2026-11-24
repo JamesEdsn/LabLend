@@ -13,6 +13,11 @@ import type {
   PeminjamanRepositoryPort,
 } from "../src/routes/peminjaman.routes.js";
 
+import {
+  InsufficientStockError,
+  InventoryNotFoundError,
+} from "../src/models/stock-error.model.js";
+
 process.env.JWT_SECRET ??= "test_secret_for_lablend_api_tests";
 
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -349,4 +354,126 @@ test("User B tidak bisa menghapus data milik User A", async () => {
     assert.equal(response.status, 404);
     assert.equal(getRecords().length, 1);
   });
+
+
+test("POST mengembalikan 409 jika stok tidak mencukupi", async () => {
+  const baseRepository = makeRepository().repository;
+
+  const repository: PeminjamanRepositoryPort = {
+    ...baseRepository,
+    create: async () => {
+      throw new InsufficientStockError(3, 5);
+    },
+  };
+
+  await withServer(createApp(repository), async (baseUrl) => {
+    const response = await fetch(`${baseUrl}/api/peminjaman`, {
+      method: "POST",
+      headers: {
+        ...authHeaders(tokenA),
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ ...validInput, jumlah: 5 }),
+    });
+
+    const body = await response.json() as {
+      success: boolean;
+      message: string;
+      available: number;
+      requested: number;
+    };
+
+    assert.equal(response.status, 409);
+    assert.equal(body.success, false);
+    assert.equal(body.available, 3);
+    assert.equal(body.requested, 5);
+  });
+});
+
+test("POST mengembalikan 404 jika barang tidak ditemukan", async () => {
+  const baseRepository = makeRepository().repository;
+
+  const repository: PeminjamanRepositoryPort = {
+    ...baseRepository,
+    create: async () => {
+      throw new InventoryNotFoundError();
+    },
+  };
+
+  await withServer(createApp(repository), async (baseUrl) => {
+    const response = await fetch(`${baseUrl}/api/peminjaman`, {
+      method: "POST",
+      headers: {
+        ...authHeaders(tokenA),
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(validInput),
+    });
+
+    assert.equal(response.status, 404);
+  });
+});
+
+test("PUT mengembalikan 409 jika stok tidak mencukupi", async () => {
+  const baseRepository = makeRepository().repository;
+
+  const repository: PeminjamanRepositoryPort = {
+    ...baseRepository,
+    update: async () => {
+      throw new InsufficientStockError(2, 4);
+    },
+  };
+
+  await withServer(createApp(repository), async (baseUrl) => {
+    const response = await fetch(
+      `${baseUrl}/api/peminjaman/record-1`,
+      {
+        method: "PUT",
+        headers: {
+          ...authHeaders(tokenA),
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ ...validInput, jumlah: 4 }),
+      }
+    );
+
+    const body = await response.json() as {
+      success: boolean;
+      available: number;
+      requested: number;
+    };
+
+    assert.equal(response.status, 409);
+    assert.equal(body.success, false);
+    assert.equal(body.available, 2);
+    assert.equal(body.requested, 4);
+  });
+});
+
+test("PUT mengembalikan 404 jika barang tidak ditemukan", async () => {
+  const baseRepository = makeRepository().repository;
+
+  const repository: PeminjamanRepositoryPort = {
+    ...baseRepository,
+    update: async () => {
+      throw new InventoryNotFoundError();
+    },
+  };
+
+  await withServer(createApp(repository), async (baseUrl) => {
+    const response = await fetch(
+      `${baseUrl}/api/peminjaman/record-1`,
+      {
+        method: "PUT",
+        headers: {
+          ...authHeaders(tokenA),
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(validInput),
+      }
+    );
+
+    assert.equal(response.status, 404);
+  });
+});
 });

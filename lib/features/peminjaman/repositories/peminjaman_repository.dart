@@ -1,5 +1,6 @@
 import '../models/peminjaman_model.dart';
 import '../services/api_service.dart';
+import '../models/alat_model.dart';
 
 class PeminjamanRepository {
   final bool simulateEmpty;
@@ -18,7 +19,7 @@ class PeminjamanRepository {
   }) : _api = api ?? ApiService();
 
   // Tetap menyediakan daftar alat untuk dropdown.
-  Future<List<String>> fetchAlat() async {
+  Future<List<Alat>> fetchAlat() async {
     await Future.delayed(fetchDelay);
 
     if (simulateError) {
@@ -29,19 +30,7 @@ class PeminjamanRepository {
       return [];
     }
 
-    return [
-      'Laptop',
-      'Proyektor',
-      'Kamera',
-      'ESP32 Development Board',
-      'Raspberry Pi',
-      'Arduino Uno',
-      'Sensor Kit',
-      'Digital Multimeter',
-      'MikroTik Router',
-      'LAN Cable Tester',
-      'IoT Starter Kit',
-    ];
+    return _api.fetchAlat();
   }
 
   // READ: mengambil riwayat dari API.

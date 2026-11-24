@@ -5,6 +5,7 @@ import 'package:lablend/core/services/api_config.dart';
 
 import '../../../core/services/app_logger.dart';
 import '../../../core/services/secure_storage_service.dart';
+import '../models/alat_model.dart';
 import '../models/peminjaman_model.dart';
 
 class ApiService {
@@ -30,7 +31,6 @@ class ApiService {
 
       if (token == null || token.isEmpty) {
         AppLogger.warning('Authentication token not found');
-
         throw Exception('Token tidak ditemukan. Silakan login kembali.');
       }
 
@@ -50,6 +50,58 @@ class ApiService {
     }
   }
 
+  // Mengambil daftar inventaris dari API.
+  Future<List<Alat>> fetchAlat() async {
+    final uri = Uri.parse('$baseUrl/alat');
+
+    try {
+      AppLogger.info('GET /alat - Request started');
+
+      final response = await client.get(uri, headers: await _authHeaders());
+
+      AppLogger.info('GET /alat - HTTP ${response.statusCode}');
+
+      if (response.statusCode != 200) {
+        throw Exception(
+          _extractErrorMessage(
+            response.body,
+            'Gagal mengambil data inventaris: HTTP ${response.statusCode}',
+          ),
+        );
+      }
+
+      final decoded = jsonDecode(response.body);
+
+      if (decoded is! Map<String, dynamic> ||
+          decoded['success'] != true ||
+          decoded['data'] is! List) {
+        throw const FormatException('Format respons inventaris tidak valid');
+      }
+
+      final data = decoded['data'] as List<dynamic>;
+
+      final records = data.map((item) {
+        if (item is! Map<String, dynamic>) {
+          throw const FormatException('Format data inventaris tidak valid');
+        }
+
+        return Alat.fromJson(item);
+      }).toList();
+
+      AppLogger.info('GET /alat - Successfully loaded ${records.length} items');
+
+      return records;
+    } catch (error, stackTrace) {
+      AppLogger.error(
+        'GET /alat - Request failed',
+        error: error,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  // READ: mengambil riwayat peminjaman dari API.
   Future<List<Peminjaman>> fetchPeminjaman() async {
     final uri = Uri.parse('$baseUrl/peminjaman');
 
@@ -62,7 +114,10 @@ class ApiService {
 
       if (response.statusCode != 200) {
         throw Exception(
-          'Gagal mengambil riwayat peminjaman: HTTP ${response.statusCode}',
+          _extractErrorMessage(
+            response.body,
+            'Gagal mengambil riwayat peminjaman: HTTP ${response.statusCode}',
+          ),
         );
       }
 
@@ -99,6 +154,7 @@ class ApiService {
     }
   }
 
+  // CREATE: menyimpan peminjaman melalui API.
   Future<Peminjaman> createPeminjaman({
     required String alat,
     required int jumlah,
@@ -123,7 +179,10 @@ class ApiService {
 
       if (response.statusCode != 201 && response.statusCode != 200) {
         throw Exception(
-          'Gagal menyimpan peminjaman: HTTP ${response.statusCode}',
+          _extractErrorMessage(
+            response.body,
+            'Gagal menyimpan peminjaman: HTTP ${response.statusCode}',
+          ),
         );
       }
 
@@ -152,6 +211,7 @@ class ApiService {
     }
   }
 
+  // UPDATE: memperbarui peminjaman melalui API.
   Future<void> updatePeminjaman(Peminjaman record) async {
     final uri = Uri.parse(
       '$baseUrl/peminjaman/${Uri.encodeComponent(record.id)}',
@@ -174,7 +234,10 @@ class ApiService {
 
       if (response.statusCode != 200) {
         throw Exception(
-          'Gagal memperbarui peminjaman: HTTP ${response.statusCode}',
+          _extractErrorMessage(
+            response.body,
+            'Gagal memperbarui peminjaman: HTTP ${response.statusCode}',
+          ),
         );
       }
 
@@ -189,6 +252,7 @@ class ApiService {
     }
   }
 
+  // DELETE: menghapus peminjaman melalui API.
   Future<void> deletePeminjaman(String id) async {
     final uri = Uri.parse('$baseUrl/peminjaman/${Uri.encodeComponent(id)}');
 
@@ -201,7 +265,10 @@ class ApiService {
 
       if (response.statusCode != 200) {
         throw Exception(
-          'Gagal menghapus peminjaman: HTTP ${response.statusCode}',
+          _extractErrorMessage(
+            response.body,
+            'Gagal menghapus peminjaman: HTTP ${response.statusCode}',
+          ),
         );
       }
 
@@ -216,6 +283,22 @@ class ApiService {
     }
   }
 
+  // Mengambil pesan error dari respons backend.
+  String _extractErrorMessage(String body, String fallback) {
+    try {
+      final decoded = jsonDecode(body);
+
+      if (decoded is Map<String, dynamic> && decoded['message'] is String) {
+        return decoded['message'] as String;
+      }
+    } catch (_) {
+      // Respons bukan JSON, gunakan pesan default.
+    }
+
+    return fallback;
+  }
+
+  // Menutup HTTP client ketika service tidak lagi digunakan.
   void dispose() {
     AppLogger.info('ApiService disposed');
     client.close();

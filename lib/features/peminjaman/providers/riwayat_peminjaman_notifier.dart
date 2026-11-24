@@ -24,6 +24,7 @@ class RiwayatPeminjamanNotifier extends AsyncNotifier<List<Peminjaman>> {
     });
   }
 
+  // DELETE: hapus peminjaman, refresh riwayat dan stok inventaris.
   Future<void> hapusPeminjaman(String id) async {
     final repository = ref.read(peminjamanRepositoryProvider);
 
@@ -31,8 +32,12 @@ class RiwayatPeminjamanNotifier extends AsyncNotifier<List<Peminjaman>> {
 
     final records = await repository.fetchPeminjaman();
     state = AsyncData(records);
+
+    // Ambil stok terbaru dari backend.
+    await ref.read(peminjamanProvider.notifier).fetchAlat();
   }
 
+  // UPDATE: perbarui peminjaman, refresh riwayat dan stok inventaris.
   Future<void> updatePeminjaman(Peminjaman updatedRecord) async {
     final repository = ref.read(peminjamanRepositoryProvider);
 
@@ -40,5 +45,8 @@ class RiwayatPeminjamanNotifier extends AsyncNotifier<List<Peminjaman>> {
 
     final records = await repository.fetchPeminjaman();
     state = AsyncData(records);
+
+    // Ambil stok terbaru dari backend.
+    await ref.read(peminjamanProvider.notifier).fetchAlat();
   }
 }
