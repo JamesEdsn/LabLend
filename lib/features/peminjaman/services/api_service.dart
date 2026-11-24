@@ -1,14 +1,14 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
+import 'package:lablend/core/services/api_config.dart';
 
 import '../../../core/services/app_logger.dart';
 import '../../../core/services/secure_storage_service.dart';
 import '../models/peminjaman_model.dart';
 
 class ApiService {
-  // Untuk Flutter Web yang berjalan di komputer yang sama dengan backend.
-  static const String baseUrl = 'http://localhost:3000/api';
+  static const String baseUrl = ApiConfig.baseUrl;
 
   final http.Client client;
   final Future<String?> Function()? tokenProvider;

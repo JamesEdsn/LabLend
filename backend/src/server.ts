@@ -5,10 +5,12 @@ import { peminjamanRepository } from "./repositories/peminjaman.repository.js";
 import { alatRepository } from "./repositories/alat.repository.js";
 
 const PORT = Number(process.env.PORT || 3000);
+const HOST = "0.0.0.0";
+
 const app = createApp(peminjamanRepository, alatRepository);
 
-const server = app.listen(PORT, () => {
-  console.log(`LabLend API berjalan di http://localhost:${PORT}`);
+const server = app.listen(PORT, HOST, () => {
+  console.log(`LabLend API berjalan di http://${HOST}:${PORT}`);
 });
 
 async function shutdown() {

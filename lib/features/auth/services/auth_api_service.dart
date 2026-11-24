@@ -1,9 +1,10 @@
 import 'dart:convert';
 
+import 'package:lablend/core/services/api_config.dart';
 import 'package:http/http.dart' as http;
 
 class AuthApiService {
-  static const String baseUrl = 'http://localhost:3000/api';
+  static const String baseUrl = ApiConfig.baseUrl;
 
   final http.Client client;
 
