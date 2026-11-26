@@ -1,0 +1,77 @@
+
+name: LabLend CI Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - v1.0
+      - v1.0_dev
+      - V1.1
+
+  pull_request:
+    branches:
+      - main
+      - v1.0
+      - v1.0_dev
+      - V1.1
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  flutter-ci:
+    name: Flutter Analyze and Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install Flutter dependencies
+        run: flutter pub get
+
+      - name: Analyze Flutter code
+        run: flutter analyze
+
+      - name: Run Flutter tests
+        run: flutter test
+
+  backend-ci:
+    name: Backend Test and Build
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: backend
+
+    env:
+      DATABASE_URL: mysql://root:root@localhost:3306/lablend_db
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install backend dependencies
+        run: npm ci
+
+      - name: Run backend tests
+        run: npm test
+
+      - name: Build backend
+        run: npm run build
