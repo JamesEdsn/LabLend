@@ -15,22 +15,35 @@ class RiwayatPeminjamanNotifier extends AsyncNotifier<List<Peminjaman>> {
     return repository.fetchPeminjaman();
   }
 
+  // Mengambil ulang data riwayat.
   Future<void> refreshRiwayat() async {
+    if (!ref.mounted) return;
+
+    final repository = ref.read(peminjamanRepositoryProvider);
+
     state = const AsyncLoading();
 
-    state = await AsyncValue.guard(() async {
-      final repository = ref.read(peminjamanRepositoryProvider);
-      return repository.fetchPeminjaman();
-    });
+    final result = await AsyncValue.guard(() => repository.fetchPeminjaman());
+
+    if (!ref.mounted) return;
+
+    state = result;
   }
 
   // DELETE: hapus peminjaman, refresh riwayat dan stok inventaris.
   Future<void> hapusPeminjaman(String id) async {
+    if (!ref.mounted) return;
+
     final repository = ref.read(peminjamanRepositoryProvider);
 
     await repository.deletePeminjaman(id);
 
+    if (!ref.mounted) return;
+
     final records = await repository.fetchPeminjaman();
+
+    if (!ref.mounted) return;
+
     state = AsyncData(records);
 
     // Ambil stok terbaru dari backend.
@@ -39,11 +52,18 @@ class RiwayatPeminjamanNotifier extends AsyncNotifier<List<Peminjaman>> {
 
   // UPDATE: perbarui peminjaman, refresh riwayat dan stok inventaris.
   Future<void> updatePeminjaman(Peminjaman updatedRecord) async {
+    if (!ref.mounted) return;
+
     final repository = ref.read(peminjamanRepositoryProvider);
 
     await repository.updatePeminjaman(updatedRecord);
 
+    if (!ref.mounted) return;
+
     final records = await repository.fetchPeminjaman();
+
+    if (!ref.mounted) return;
+
     state = AsyncData(records);
 
     // Ambil stok terbaru dari backend.

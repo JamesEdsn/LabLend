@@ -52,6 +52,7 @@ class PeminjamanNotifier extends Notifier<PeminjamanState> {
   PeminjamanState build() {
     repository = ref.read(peminjamanRepositoryProvider);
 
+    // Memulai pengambilan inventaris setelah build selesai.
     Future.microtask(fetchAlat);
 
     return const PeminjamanState(status: PeminjamanStatus.loading);
@@ -59,10 +60,16 @@ class PeminjamanNotifier extends Notifier<PeminjamanState> {
 
   // Mengambil inventaris dari API.
   Future<void> fetchAlat() async {
+    // Jangan mengakses state jika provider sudah di-dispose.
+    if (!ref.mounted) return;
+
     state = const PeminjamanState(status: PeminjamanStatus.loading);
 
     try {
       final data = await repository.fetchAlat();
+
+      // Periksa kembali setelah menunggu respons API.
+      if (!ref.mounted) return;
 
       if (data.isEmpty) {
         state = const PeminjamanState(status: PeminjamanStatus.empty);
@@ -70,6 +77,8 @@ class PeminjamanNotifier extends Notifier<PeminjamanState> {
         state = PeminjamanState(status: PeminjamanStatus.loaded, alat: data);
       }
     } catch (e) {
+      if (!ref.mounted) return;
+
       state = PeminjamanState(
         status: PeminjamanStatus.error,
         errorMessage: e.toString().replaceFirst('Exception: ', ''),
@@ -83,7 +92,7 @@ class PeminjamanNotifier extends Notifier<PeminjamanState> {
     required int jumlah,
     required String tanggalKembali,
   }) async {
-    if (state.isSubmitting) {
+    if (!ref.mounted || state.isSubmitting) {
       return false;
     }
 
@@ -96,20 +105,29 @@ class PeminjamanNotifier extends Notifier<PeminjamanState> {
         tanggalKembali: tanggalKembali,
       );
 
+      if (!ref.mounted) return false;
+
       state = state.copyWith(clearError: true);
 
       // Refresh stok setelah peminjaman berhasil.
       await fetchAlat();
 
+      if (!ref.mounted) return false;
+
       return true;
     } catch (e) {
+      if (!ref.mounted) return false;
+
       state = state.copyWith(
         errorMessage: e.toString().replaceFirst('Exception: ', ''),
       );
 
       return false;
     } finally {
-      state = state.copyWith(isSubmitting: false);
+      // Jangan mengubah state provider yang sudah di-dispose.
+      if (ref.mounted) {
+        state = state.copyWith(isSubmitting: false);
+      }
     }
   }
 }

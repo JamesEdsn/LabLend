@@ -69,4 +69,86 @@ void main() {
       );
     });
   });
+
+  group('Peminjaman additional tests', () {
+    test('rejects null ID', () {
+      expect(
+        () => Peminjaman.fromJson({...validJson, 'id': null}),
+        throwsFormatException,
+      );
+    });
+
+    test('rejects ID containing only spaces', () {
+      expect(
+        () => Peminjaman.fromJson({...validJson, 'id': '   '}),
+        throwsFormatException,
+      );
+    });
+
+    test('rejects non-string ID', () {
+      expect(
+        () => Peminjaman.fromJson({...validJson, 'id': 123}),
+        throwsFormatException,
+      );
+    });
+
+    test('rejects null equipment name', () {
+      expect(
+        () => Peminjaman.fromJson({...validJson, 'alat': null}),
+        throwsFormatException,
+      );
+    });
+
+    test('rejects non-string equipment name', () {
+      expect(
+        () => Peminjaman.fromJson({...validJson, 'alat': 123}),
+        throwsFormatException,
+      );
+    });
+
+    test('rejects string quantity', () {
+      expect(
+        () => Peminjaman.fromJson({...validJson, 'jumlah': '2'}),
+        throwsFormatException,
+      );
+    });
+
+    test('rejects decimal quantity', () {
+      expect(
+        () => Peminjaman.fromJson({...validJson, 'jumlah': 2.5}),
+        throwsFormatException,
+      );
+    });
+
+    test('rejects null return date', () {
+      expect(
+        () => Peminjaman.fromJson({...validJson, 'tanggalKembali': null}),
+        throwsFormatException,
+      );
+    });
+
+    test('rejects non-string return date', () {
+      expect(
+        () => Peminjaman.fromJson({...validJson, 'tanggalKembali': 20261115}),
+        throwsFormatException,
+      );
+    });
+
+    test('converts borrowing record to JSON', () {
+      final record = Peminjaman.fromJson(validJson);
+
+      expect(record.toJson(), validJson);
+    });
+
+    test('copyWith changes selected fields only', () {
+      final record = Peminjaman.fromJson(validJson);
+
+      final updated = record.copyWith(alat: 'ESP32', jumlah: 5);
+
+      expect(updated.id, record.id);
+      expect(updated.alat, 'ESP32');
+      expect(updated.jumlah, 5);
+      expect(updated.tanggalKembali, record.tanggalKembali);
+    });
+  });
 }
