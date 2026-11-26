@@ -337,6 +337,7 @@ test("User B tidak bisa mengubah data milik User A", async () => {
   });
 });
 
+
 test("User B tidak bisa menghapus data milik User A", async () => {
   const { repository, getRecords } = makeRepository([
     { id: "private-a", ...validInput, userId: userA },
@@ -354,7 +355,7 @@ test("User B tidak bisa menghapus data milik User A", async () => {
     assert.equal(response.status, 404);
     assert.equal(getRecords().length, 1);
   });
-
+}); // Parent test ditutup di sini
 
 test("POST mengembalikan 409 jika stok tidak mencukupi", async () => {
   const baseRepository = makeRepository().repository;
@@ -475,5 +476,4 @@ test("PUT mengembalikan 404 jika barang tidak ditemukan", async () => {
 
     assert.equal(response.status, 404);
   });
-});
 });
